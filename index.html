@@ -18,6 +18,11 @@
             overflow: auto !important;
         }
 
+        *:focus {
+            outline: none;
+            /* Esto quita el borde celeste que aparece cuando cualquier elemento está enfocado */
+        }
+
         /*Contenedor para el formulario en general todos los inputs*/
         .contendorForm {
             display: flex;
@@ -172,17 +177,6 @@
             margin-bottom: 1%;
             margin-right: 1%;
         }
-
-        button:focus {
-            outline: none;
-            /* Esto quita el borde celeste que aparece cuando el botón está enfocado */
-        }
-
-        svg:focus {
-            outline: none;
-            /* Esto quita el borde celeste que aparece cuando el botón está enfocado */
-        }
-        
     </style>
 
 </head>
