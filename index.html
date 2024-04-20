@@ -218,7 +218,7 @@
     <!-- Agregar script de Cropper.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
-   
+
     <script>
 
         // Acá tendriamos el dropzone y el input file
@@ -437,11 +437,11 @@
                 // Obtener la imagen recortada como objeto Blob
                 cropper.getCroppedCanvas().toBlob(function (croppedBlob) {
                     archivo.blob = croppedBlob;
-
+                    archivo.size = croppedBlob.size
                     mostrarImagenesEnTabla();
                     editImg(index)
                 });
-                
+
             })
 
             // LUEGO DE RECORTAR LA IMAGEN HAY QUE GUIARSE POR EL NAME DEL ARCHIVO PARA GUARDAR EL RECORTE, ESTO POR SI EL USUARIO CAMBIA DE LUGAR LOS ARCHIVOS, SI FUESE POR EL INDEX PODRIA GUARDARSE EL RECORTE EN EL ARCHIVO INCORRECTO. 
