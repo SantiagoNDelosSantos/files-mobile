@@ -15,7 +15,6 @@
             padding: 0;
             font-family: 'Montserrat';
             font-size: 0.9em;
-            overflow: auto !important;
         }
 
         /*Contenedor para el formulario en general todos los inputs*/
@@ -24,8 +23,11 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            border: red solid 0.2em;
             padding: 2em;
             gap: 1em;
+            width: 40%;
+            margin: 4.5em 30%;
             border-radius: 3em;
         }
 
@@ -172,6 +174,29 @@
             margin-bottom: 1%;
             margin-right: 1%;
         }
+
+        button {
+            font-size: 1em;
+            color: #009FF5;
+            background-color: #ffffff;
+            width: auto;
+            padding: 0.4em 0.7em;
+            border-radius: 1em;
+            /* CELESTE STANDART PARA TODOS LOS BOTONES */
+            border: 0.15em solid #009FF5;
+            text-align: center;
+            cursor: pointer;
+            /* CELESTE LIGERAMENTE MAS OSCURO QUE EL CELESTE GENERAL PARA EN BORDE DE ABAJO DE LOS BOTONES*/
+            border-bottom: 0.15em solid #018dd8;
+        }
+
+        button:hover {
+            color: #ffffff;
+            background-color: #009FF5;
+            border: 0.15em solid #009FF5;
+            border-bottom: 0.15em solid#009FF5;
+        }
+
     </style>
 
 </head>
@@ -215,121 +240,85 @@
 
     </div>
 
+   
     <!-- Agregar script de Cropper.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
-
     <script>
 
-        // Acá tendriamos el dropzone y el input file
+        // Esto seria el funcionamiento basico para el input file (Bloque 00):
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('fileInput');
-
-        // Se agrega un event listener al área de soltar (dropzone) que se activa cuando un archivo se arrastra sobre él. Este event listener previene el comportamiento por defecto del navegador (e.preventDefault()) y añade la clase hover al dropzone.
         dropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropzone.classList.add('hover');
         });
-
-        // Se agrega un event listener al área de soltar (dropzone) que se activa cuando un archivo se arrastra fuera de él. Este event listener remueve la clase hover del dropzone.
         dropzone.addEventListener('dragleave', () => {
             dropzone.classList.remove('hover');
         });
-
-        // Se agrega un event listener al área de soltar (dropzone) que se activa cuando se hace clic sobre él. Este event listener simula un clic en el fileInput, permitiendo que los usuarios seleccionen archivos mediante el clic en el dropzone.
         dropzone.addEventListener('click', () => {
             fileInput.click();
         });
-
-
-
-        // Tanto si se arrastra un archivo dentro del file como si se hace clic y se selecciona un archivo se ejecutan estas dos funciones a continuación:
-
-        // Se agrega un event listener al área de soltar (dropzone) que se activa cuando se suelta un archivo sobre él. Este event listener previene el comportamiento por defecto del navegador (e.preventDefault()), remueve la clase hover del dropzone, y llama a la función handleFile() pasando el archivo soltado como argumento.
-        dropzone.addEventListener('drop', (e) => {
+        dropzone.addEventListener('drop', async (e) => {
             e.preventDefault();
             dropzone.classList.remove('hover');
             const files = e.dataTransfer.files;
-            handleFiles(files); // Llama a la función handleFiles() para manejar todos los archivos soltados
+            await handleFiles(files);
         });
-
-        // Se agrega un event listener al fileInput que se activa cuando se selecciona un archivo. Este event listener llama a la función handleFiles() pasando todos los archivos seleccionados como argumento.
-        fileInput.addEventListener('change', async () => {
+        fileInput.addEventListener('change', async (e) => {
+            e.preventDefault();
             const files = fileInput.files;
-            await handleFiles(files); // Llama a la función handleFiles() para manejar todos los archivos seleccionados
+            await handleFiles(files);
             fileInput.value = ""
         });
-
-
         // ACÁ SE VAN GUARDANDO LOS ARCHIVOS QUE SE VAN SUBIENDO.
         let allFiles = []
 
-        // Capturamos el parrafo del dropzone:
+        // Capturamos el parrafo del dropzone (Bloque 05):
         function actualizarParrafo(allFiles) {
             let parrafoDropZone = document.getElementById("parrafoDropZone");
             parrafoDropZone.innerText = `Puedes subir hasta 5 imágenes por publicación (${allFiles.length}/5).`;
         }
 
-        // Acá campuramos el dom de la tabla.
+        // Capturamos el dom de la tabla.
         let table = document.getElementById("tablaPreview")
         let divTabla = document.getElementById("divTabla")
-
         let htmlPreview = "";
-        // Acá tendriamos que configurar la función que deberia cargar la tabla con los archivos que se fueron seleccionando.
+        // Acá configuramos la función para cargar la tabla con los archivos seleccionados (Bloque 06)
         function mostrarImagenesEnTabla() {
             if (allFiles.length > 0) {
-
                 htmlPreview = ``
                 allFiles.forEach((img, index) => {
-
-                    // Suponiendo que 'img' es un objeto que contiene el Blob de la imagen
                     const objectURL = URL.createObjectURL(img.blob);
-
                     let peso = Math.round(img.peso / 1024)
-
+                    let peso2 = Math.round(img.peso2 / 1024)
                     htmlPreview += `
                 <tr>
                     <td>
-                            
                         <div style="width: 3.5em; height: 3.5em; display: flex; align-items: center; justify-content: center; flex-direction: row; overflow: hidden; border-radius: 0.5em;">
-                            ${img.area === "C" ? `<img src="${objectURL}" style="width: -webkit-fill-available; height:-webkit-fill-available;">` : ``}
-                            ${img.area === "RH" ? `<img src="${objectURL}" style="height:-webkit-fill-available;">` : ``}
-                            ${img.area === "RV" ? ` <img src="${objectURL}" style="width: -webkit-fill-available;">` : ``}
+                            ${img.area === "C" ? `<img onclick="preview(${img.idSimil})" src="${objectURL}" style="width: -webkit-fill-available; height:-webkit-fill-available;">` : ``}
+                            ${img.area === "RH" ? `<img onclick="preview(${img.idSimil})" src="${objectURL}" style="height:-webkit-fill-available;">` : ``}
+                            ${img.area === "RV" ? `<img onclick="preview(${img.idSimil})" src="${objectURL}" style="width: -webkit-fill-available;">` : ``}
                         </div>
-
                         <div style="display:flex; flex-direction: column; align-items: center; justify-content: center; height: 3em;">
-                            
                             <p style="font-size: smaller; font-weight: bold; margin: 0em; padding: 0.5em" title="${img.name}">${img.name.length > 13 ? img.name.substring(0, 13) + '...' : img.name}</p>
-
-                            <p style="font-size: smaller; margin: 0em; padding: 0.5em">${peso} KB</p>
+                            <p style="font-size: smaller; margin: 0em; padding: 0.5em">${peso} KB a ${peso2} KB</p>
                         </div>
-
                         <div class="actions">
-
                             ${index !== 0 ? `<svg class="svg" onclick="moveUp(${index})" class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v13m0-13 4 4m-4-4-4 4"/></svg>` : ``}
                             ${index === 0 ? `<svg class="svg2" style="color: white;" class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v13m0-13 4 4m-4-4-4 4"/></svg>` : ``}
-                                
                             ${index !== allFiles.length - 1 ? `<svg class="svg" onclick="moveDown(${index})"  class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 14-4-4m4 4 4-4"/></svg>` : ``}
                             ${index === allFiles.length - 1 ? `<svg class="svg2" style="color: white;" class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 14-4-4m4 4 4-4"/></svg>` : ``}
-
                             <svg class="svg" onclick="editImg(${index})" class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.779 17.779 4.36 19.918 6.5 13.5m4.279 4.279 8.364-8.643a3.027 3.027 0 0 0-2.14-5.165 3.03 3.03 0 0 0-2.14.886L6.5 13.5m4.279 4.279L6.499 13.5m2.14 2.14 6.213-6.504M12.75 7.04 17 11.28"/>
                             </svg>
-
                             <svg  class="svg" onclick="deleteLine(${index})" class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
                             </svg>
-
-
                         </div>
-
                     </td>
-
-                </tr>
-                    `
+                </tr>`
                 })
-
-                // Acá le meteriamos el html a la tabla.
                 table.innerHTML = htmlPreview;
                 divTabla.style = "display: block";
             } else {
@@ -337,6 +326,7 @@
             }
         }
 
+        // Funciones base para los bótones de la tabla:
         function moveUp(index) {
             if (index > 0) {
                 const temp = allFiles[index];
@@ -345,7 +335,6 @@
                 mostrarImagenesEnTabla();
             }
         }
-
         function moveDown(index) {
             if (index < allFiles.length - 1) {
                 const temp = allFiles[index];
@@ -355,97 +344,104 @@
             }
         }
 
-        // CAPTURAMOS EL AREA DEL CROP:
         const divCrop = document.getElementById("divCrop")
 
+        // Definimos una variable global de imagen para vincular el preview, el crop y el delete:
+        let idImgGlobal = ""
+
+        // HTMLs PARA INSERTAR EN EL divCrop:
         let imgDivCrop = ""
+        let imgDivPreview = ""
+
+        // Función para preview (Clic sobre la imagen):
+        function preview(idSimil) {
+            const archivo = allFiles.find(file => file.idSimil === idSimil);
+            // Actualizamos el idImgGlobal:
+            idImgGlobal = archivo.idSimil
+            let imgBlobURL = URL.createObjectURL(archivo.blob);
+            divCrop.style = "display: flex; justify-content: center; align-items: center; flex-direction: column; margin-bottom: 1em; padding: 0.5em; border: 1.5px dashed #ccc; border-radius: 0.7em; witdh:100%;";
+            imgDivCrop = ""
+            imgDivCrop += ` 
+                <div style="width: 100%; display:flex; justify-content: end; align-items: center; flex-direction: row;"> 
+                    <svg id="cerrarPreviewBtn" style="width: 1.5em; position: absolute;  width: 1.5em; height: 1.5em; padding: 0.2em; margin-left: 0.3em; cursor: pointer; color: white; margin-top: 1.9em; background: #00a6ff; border-bottom-left-radius: 40%;" class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 17.94 6M18 18 6.06 6"/>
+                    </svg>
+                </div>
+                <div style="width: 100%;">
+                    <img id="imgCargada" src="${imgBlobURL}" style="width: 100%;">
+                </div>
+            `
+            divCrop.innerHTML = imgDivCrop
+            let cerrarPreviewBtn = document.getElementById("cerrarPreviewBtn")
+            cerrarPreviewBtn.addEventListener('click', () => {
+                divCrop.innerHTML = ""
+                divCrop.style = "display: none;"
+            })
+        }
 
         // FUNCIÓN PARA RECORTAR IMAGEN:
         function editImg(index) {
-
-            // Acá buscariamos en allFiles el archivo seleccionado para editar.
             let archivo = allFiles[index];
-            // Acá tomariamos el blob y lo transformariamos en una "imagen" manipulable.
+            // Actualizamos el idImgGlobal:
+            idImgGlobal = archivo.idSimil
             let imgBlobURL = URL.createObjectURL(archivo.blob);
-
             divCrop.style = "display: flex; justify-content: center; align-items: center; flex-direction: column; margin-bottom: 1em; padding: 0.5em; padding-bottom: 0em; border: 1.5px dashed #ccc; border-radius: 0.7em; witdh:100%;";
-
             imgDivCrop = ""
-
             imgDivCrop += `
-            
-           <div style="width: 100%;">
-
-                <img id="imgCargada" src="${imgBlobURL}" style="width: 100%; border-radius: 0.7em;">
-           </div>
-
-                <div style="width: 100%; display:flex; justify-content: space-between; align-items: center; flex-direction: row; margin: 1.5em 0em; ">
-
+                <div style="width: 100%;">
+                    <img id="imgCargada" src="${imgBlobURL}" style="width: 100%;">
+                </div>
+                <div style="width: 100%; display:flex; justify-content: space-between; align-items: center; flex-direction: row; margin: 1.5em 0em;">
                     <button id="recortarBtn">Recortar</button>
-
                     <div style="display: flex; align-items: center; justify-content: space-evenly; width: 100%;">
-
-                    <div id="cropC" class="shapes" style=" width: 1em; height: 1em;" ></div>
-                    <div id="cropRV" class="shapes" style=" width: 1em; height: 2em;" ></div>
-                    <div id="cropRH" class="shapes" style=" width: 2em; height: 1em;" ></div>
-
+                        <div id="cropC" class="shapes" style=" width: 1em; height: 1em;" ></div>
+                        <div id="cropRV" class="shapes" style=" width: 1em; height: 2em;" ></div>
+                        <div id="cropRH" class="shapes" style=" width: 2em; height: 1em;" ></div>
                     </div>
-
                     <button id="cerrarCropBtn">Cerrar editor</button>
-
                 </div>
             `
-
             divCrop.innerHTML = imgDivCrop
-
-            // Función para cambiar la relación de aspecto del área de recorte
             let areaRatio = 1;
-
             imgCargada.onload = function () {
                 cropper = new Cropper(imgCargada, {
-                    aspectRatio: areaRatio, // Cuadrado
-                    viewMode: 1,  // Tamaño real
-                    zoomable: false
+                    aspectRatio: areaRatio,
+                    viewMode: 1,
+                    zoomable: false,
                 });
             };
-
             let cropC = document.getElementById("cropC");
             let cropRV = document.getElementById("cropRV");
             let cropRH = document.getElementById("cropRH");
-
             cropC.addEventListener('click', () => {
                 areaRatio = 1;
                 cropper.setAspectRatio(areaRatio);
             });
-
             cropRV.addEventListener('click', () => {
                 areaRatio = 9 / 16;
                 cropper.setAspectRatio(areaRatio);
             });
-
             cropRH.addEventListener('click', () => {
                 areaRatio = 16 / 9;
                 cropper.setAspectRatio(areaRatio);
             });
-
             let recortarBtn = document.getElementById("recortarBtn")
             recortarBtn.addEventListener('click', () => {
-
                 if (!cropper) {
                     return;
                 }
                 // Obtener la imagen recortada como objeto Blob
-                cropper.getCroppedCanvas().toBlob(function (croppedBlob) {
-                    archivo.blob = croppedBlob;
-                    archivo.size = croppedBlob.size
+                cropper.getCroppedCanvas().toBlob(async function (croppedBlob) {
+                    let imagenComprimida = await comprimirImagen(croppedBlob)
+                    archivo.blob = imagenComprimida.blob
+                    archivo.peso = imagenComprimida.blob.size
+                    archivo.peso2 = imagenComprimida.blob.size
+                    preview(archivo.idSimil)
                     mostrarImagenesEnTabla();
-                    editImg(index)
+
                 });
-
             })
-
             // LUEGO DE RECORTAR LA IMAGEN HAY QUE GUIARSE POR EL NAME DEL ARCHIVO PARA GUARDAR EL RECORTE, ESTO POR SI EL USUARIO CAMBIA DE LUGAR LOS ARCHIVOS, SI FUESE POR EL INDEX PODRIA GUARDARSE EL RECORTE EN EL ARCHIVO INCORRECTO. 
-
 
             let cerrarEdit = document.getElementById("cerrarCropBtn")
             cerrarEdit.addEventListener('click', () => {
@@ -455,137 +451,14 @@
 
         }
 
-
-
-
-
-
-
         function deleteLine(index) {
+            let archivo = allFiles[index];
+            if (idImgGlobal === archivo.idSimil) {
+                divCrop.innerHTML = ""
+                divCrop.style = "display: none;"
+            }
             allFiles.splice(index, 1);
             actualizarParrafo(allFiles)
-            mostrarImagenesEnTabla();
-        }
-
-        // Función para verificar si la extensión del archivo es permitida
-        function esExtensionPermitida(archivo) {
-            const extensionesPermitidas = ["jpg", "jpeg", "png"];
-            const nombreArchivo = archivo.name.toLowerCase();
-            const extension = nombreArchivo.substring(nombreArchivo.lastIndexOf(".") + 1);
-            return extensionesPermitidas.includes(extension);
-        }
-
-        // Función para comprimir una imagen
-        async function comprimirImagen(imagenComoArchivo) {
-
-            let nivelCompress = 0
-
-            if (imagenComoArchivo.size < 500 * 1024) { // Si es menor a 500 KB
-                nivelCompress = 0.6; // 60%
-            } else if (imagenComoArchivo.size < 1024 * 1024) { // Si es menor a 1 MB
-                nivelCompress = 0.5; // 50%
-            } else { // Si es mayor o igual a 1 MB
-                nivelCompress = 0.4; // 40%
-            }
-
-            // Esto crea una nueva promesa. Una promesa es un objeto que representa la eventual finalización o falla de una operación asíncrona.
-            return new Promise((resolve, reject) => {
-
-                // Aquí se crea un nuevo elemento <canvas> en el documento HTML. Este lienzo se usará para dibujar la imagen y luego comprimirla.
-                const canvas = document.createElement("canvas");
-                // Se crea un nuevo objeto de imagen. Esta imagen se usará para cargar y mostrar la imagen seleccionada por el usuario.
-                const imagen = new Image();
-
-                imagen.onload = () => {
-
-                    let area = ""
-                    if (imagen.width === imagen.height) {
-                        area = "C"
-                    } else if (imagen.width > imagen.height) {
-                        area = "RH"
-                    } else {
-                        area = "RV"
-                    }
-
-                    // Aquí se establecen las dimensiones del lienzo (canvas) para que coincidan con las dimensiones de la imagen cargada.
-                    canvas.width = imagen.width;
-                    canvas.height = imagen.height;
-
-                    // Esto dibuja la imagen cargada en el lienzo utilizando el contexto de dibujo 2D del lienzo. La imagen se dibuja en las coordenadas (0, 0) del lienzo.
-                    canvas.getContext("2d").drawImage(imagen, 0, 0);
-
-                    // Se llama al método toBlob del lienzo para convertir el contenido del lienzo en un objeto Blob. El objeto Blob resultante se pasa a la función de devolución de llamada proporcionada como primer argumento de toBlob. Si el blob es válido, la promesa se resuelve con el blob; de lo contrario, se rechaza con el blob.
-                    canvas.toBlob(
-                        (blob) => {
-                            if (blob === null) {
-                                return reject({ error: "No se pudo crear el blob", area });
-                            } else {
-                                resolve({ blob, area });
-                            }
-                        },
-                        "image/jpeg",
-                        nivelCompress
-                    );
-
-                };
-
-                imagen.src = URL.createObjectURL(imagenComoArchivo);
-
-            });
-
-        }
-
-        const MAX_PESO_PERMITIDO = 20 * 1024 * 1024; // 40 megabytes en bytes
-
-        // Esta es la función que se va a ejecutar cada vez que se selecione o suba un archivo.
-        async function handleFiles(files) {
-            // LA PRIMERA VALIDACIÓN ES PARA CUANDO SE VAN SE SELECCIONANDO DE A UNO HASTA LLEGAR A 5 LA SEGUNDA ES POR SI EL USUARIO SELECCIONA EN UNA SOLA VEZ MAS DE 5 IMAGENES.
-            if (allFiles.length >= 5) {   // ACÁ VOY A TENER QUE AGREGAR LOS SWEET ALERT PARA EVITAR QUE SE PUEDA CARGAR MAS DE 5 IMAGENES POR PUBLICACIÓN. 
-                alert("Ya subiste 5 archivos. Solo se pueden seleccionar hasta 5 imagenes por publicación.")
-            }
-            else {
-
-                // Itera sobre cada archivo seleccionado
-                for (let i = 0; i < files.length; i++) {
-
-                    if (allFiles.length >= 5) {
-                        // ACÁ VOY A TENER QUE AGREGAR LOS SWEET ALERT PARA EVITAR QUE SE PUEDA CARGAR MAS DE 5 IMAGENES POR PUBLICACIÓN. 
-                        alert("Ya subiste 5 archivos. Solo se pueden seleccionar hasta 5 imagenes por publicación.")
-                    } else {
-
-                        const archivo = files[i];
-                        // Acá habria que añadir la validación para el peso maximo y para la extención si es png o jpg, que no se admita archivos con otros tipos de extención. 
-                        // Validaciones adicionales (por ejemplo, peso máximo y extensión)
-                        if (archivo.size > MAX_PESO_PERMITIDO) {
-                            alert("El archivo " + archivo.name + " supera el tamaño máximo permitido.");
-                            continue; // Saltar al siguiente archivo si el peso es demasiado grande
-                        }
-                        if (!esExtensionPermitida(archivo)) {
-                            alert("El archivo " + archivo.name + " tiene una extensión no permitida.");
-                            continue; // Saltar al siguiente archivo si la extensión no es permitida
-                        }
-
-                        // Antes de guardar el archivo en el arreglo de allFiles ya deberiamos, extraer el nombre del archivo, extraer su peso en bytes y crear el blob, estas tres cosas son las que se deben guardar con cada imagen en allFiles, tiene que quedar algo asi  allFiles = [blob: dasd, name: sdasd, peso: 2312] 
-
-                        // Comprimir la imagen y agregarla al arreglo allFiles
-                        let imagenComprimida = await comprimirImagen(archivo)
-                        const objetoArchivo = {
-                            blob: imagenComprimida.blob,
-                            area: imagenComprimida.area,
-                            name: archivo.name,
-                            peso: archivo.size
-
-                        };
-                        allFiles.push(objetoArchivo); // Agregar el archivo comprimido al arreglo allFiles
-
-                    }
-                }
-
-            }
-
-            actualizarParrafo(allFiles)
-
-            // Acá llamariamos a la función que va a mostrar las imagenes en la tabla de preview.
             mostrarImagenesEnTabla()
         }
 
@@ -593,31 +466,131 @@
 
 
 
-        /*
-            
-            Acá vamos a definir la logica para lo que se debe hacer luego de selecionar y ordenar todos los archivos.
-            
-                    // Este por ahora no nos interesa
-                    const uploadButton = document.getElementById('uploadButton');
-            
-                    uploadButton.addEventListener('click', () => {
-                        // Aquí puedes agregar la lógica para manejar la carga del archivo
-                        alert('¡Archivo subido!');
-                    });
-            
-            */
 
+
+        // Función para comprimir una imagen si es necesario (Bloque 04)
+        async function comprimirImagen(imagenComoArchivo) {
+            if (imagenComoArchivo.size < 150 * 1024) {
+                return new Promise((resolve, reject) => {
+                    const imagen = new Image();
+                    imagen.onload = () => {
+                        let area = "";
+                        if (imagen.width === imagen.height) {
+                            area = "C";
+                        } else if (imagen.width > imagen.height) {
+                            area = "RH";
+                        } else {
+                            area = "RV";
+                        }
+                        const blob = new Blob([imagenComoArchivo], { type: 'image/jpeg' });
+                        resolve({ blob, area });
+                    };
+                    imagen.src = URL.createObjectURL(imagenComoArchivo);
+                });
+            } else {
+                let nivelCompress = 0
+                if (imagenComoArchivo.size < 400 * 1024) {
+                    nivelCompress = 0.4;
+                } else {
+                    nivelCompress = 0.3;
+                }
+                return new Promise((resolve, reject) => {
+                    const canvas = document.createElement("canvas");
+                    const imagen = new Image();
+                    imagen.onload = () => {
+                        let area = ""
+                        if (imagen.width === imagen.height) {
+                            area = "C"
+                        } else if (imagen.width > imagen.height) {
+                            area = "RH"
+                        } else {
+                            area = "RV"
+                        }
+                        canvas.width = imagen.width;
+                        canvas.height = imagen.height;
+                        canvas.getContext("2d").drawImage(imagen, 0, 0);
+                        canvas.toBlob(
+                            (blob) => {
+                                if (blob === null) {
+                                    return reject({ error: "No se pudo crear el blob", area });
+                                } else {
+                                    resolve({ blob, area });
+                                }
+                            }, "image/jpeg", nivelCompress
+                        );
+                    };
+                    imagen.src = URL.createObjectURL(imagenComoArchivo);
+                });
+            }
+        }
+
+        // Peso maximo por archivo (Bloque 02):
+        const MAX_PESO_PERMITIDO = 20 * 1024 * 1024;
+
+        // Función para validar la extensión del archivo (Bloque 03):
+        function esExtensionPermitida(archivo) {
+            const extensionesPermitidas = ["jpg", "jpeg", "png"];
+            const nombreArchivo = archivo.name.toLowerCase();
+            const extension = nombreArchivo.substring(nombreArchivo.lastIndexOf(".") + 1);
+            return extensionesPermitidas.includes(extension);
+        }
+
+        // Luego de que se haya seleccionado uno o mas archivos se ejecuta la función handleFiles (Bloque 01):
+
+        // REMPLAZAR LOS ALERTS POR SWEET ALERTS...
+
+        async function handleFiles(files) {
+            if (allFiles.length >= 5) {
+                return alert("Ya subiste 5 archivos. Solo se pueden seleccionar hasta 5 imagenes por publicación. 1")
+            }
+            else {
+                for (let i = 0; i < files.length; i++) {
+                    if (allFiles.length >= 5) {
+                        alert("Ya subiste 5 archivos. Solo se pueden seleccionar hasta 5 imagenes por publicación. 2")
+                    } else {
+                        const archivo = files[i];
+                        if (archivo.size > MAX_PESO_PERMITIDO) {
+                            alert("El archivo " + archivo.name + " supera el tamaño máximo permitido.");
+                            continue;
+                        }
+                        if (!esExtensionPermitida(archivo)) {
+                            alert("El archivo " + archivo.name + " tiene una extensión no permitida.");
+                            continue;
+                        }
+                        // Comprimir la imagen si es necesario y agregarla al arreglo allFiles (Bloque 04):
+                        let imagenComprimida = await comprimirImagen(archivo)
+                        const objetoArchivo = {
+                            name: archivo.name,
+                            blob: imagenComprimida.blob,
+                            area: imagenComprimida.area,
+                            peso: archivo.size,
+                            peso2: imagenComprimida.blob.size,
+                            idSimil: Date.now()
+                        };
+                        // Agregar el archivo comprimido al arreglo allFiles
+                        allFiles.push(objetoArchivo);
+                    }
+                }
+            }
+            // Actualizar parrafo del drop al cargar archivos (Bloque 05):
+            actualizarParrafo(allFiles)
+            // Función que va a mostrar las imagenes en la tabla de preview (Bloque 06):
+            mostrarImagenesEnTabla()
+        }
+
+
+
+
+
+
+        // Este bóton es el que va a tener la logica para crear el producto y hacer el post a al backend y todo eso. 
         uploadButton.addEventListener('click', () => {
             // Aquí puedes agregar la lógica para manejar la carga del archivo
             console.log(allFiles)
-
-
         });
 
-
-
-
     </script>
+
 </body>
 
 </html>
