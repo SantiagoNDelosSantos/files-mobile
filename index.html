@@ -218,6 +218,7 @@
     <!-- Agregar script de Cropper.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 
+   
     <script>
 
         // Acá tendriamos el dropzone y el input file
@@ -365,7 +366,7 @@
             // Acá buscariamos en allFiles el archivo seleccionado para editar.
             let archivo = allFiles[index];
             // Acá tomariamos el blob y lo transformariamos en una "imagen" manipulable.
-            const imgBlobURL = URL.createObjectURL(archivo.blob);
+            let imgBlobURL = URL.createObjectURL(archivo.blob);
 
             divCrop.style = "display: flex; justify-content: center; align-items: center; flex-direction: column; margin-bottom: 1em; padding: 0.5em; padding-bottom: 0em; border: 1.5px dashed #ccc; border-radius: 0.7em; witdh:100%;";
 
@@ -409,28 +410,42 @@
             };
 
             let cropC = document.getElementById("cropC");
+            let cropRV = document.getElementById("cropRV");
+            let cropRH = document.getElementById("cropRH");
+
             cropC.addEventListener('click', () => {
                 areaRatio = 1;
                 cropper.setAspectRatio(areaRatio);
             });
 
-            let cropRV = document.getElementById("cropRV");
             cropRV.addEventListener('click', () => {
                 areaRatio = 9 / 16;
                 cropper.setAspectRatio(areaRatio);
             });
 
-            let cropRH = document.getElementById("cropRH");
             cropRH.addEventListener('click', () => {
                 areaRatio = 16 / 9;
                 cropper.setAspectRatio(areaRatio);
             });
 
+            let recortarBtn = document.getElementById("recortarBtn")
+            recortarBtn.addEventListener('click', () => {
 
+                if (!cropper) {
+                    return;
+                }
+                // Obtener la imagen recortada como objeto Blob
+                cropper.getCroppedCanvas().toBlob(function (croppedBlob) {
+                    archivo.blob = croppedBlob;
 
-            let recortarBtn
+                    mostrarImagenesEnTabla();
+                    editImg(index)
+                });
+                
+            })
 
             // LUEGO DE RECORTAR LA IMAGEN HAY QUE GUIARSE POR EL NAME DEL ARCHIVO PARA GUARDAR EL RECORTE, ESTO POR SI EL USUARIO CAMBIA DE LUGAR LOS ARCHIVOS, SI FUESE POR EL INDEX PODRIA GUARDARSE EL RECORTE EN EL ARCHIVO INCORRECTO. 
+
 
             let cerrarEdit = document.getElementById("cerrarCropBtn")
             cerrarEdit.addEventListener('click', () => {
@@ -462,6 +477,16 @@
 
         // Función para comprimir una imagen
         async function comprimirImagen(imagenComoArchivo) {
+
+            let nivelCompress = 0
+
+            if (imagenComoArchivo.size < 500 * 1024) { // Si es menor a 500 KB
+                nivelCompress = 0.6; // 60%
+            } else if (imagenComoArchivo.size < 1024 * 1024) { // Si es menor a 1 MB
+                nivelCompress = 0.5; // 50%
+            } else { // Si es mayor o igual a 1 MB
+                nivelCompress = 0.4; // 40%
+            }
 
             // Esto crea una nueva promesa. Una promesa es un objeto que representa la eventual finalización o falla de una operación asíncrona.
             return new Promise((resolve, reject) => {
@@ -499,7 +524,7 @@
                             }
                         },
                         "image/jpeg",
-                        40 / 100
+                        nivelCompress
                     );
 
                 };
@@ -549,6 +574,7 @@
                             area: imagenComprimida.area,
                             name: archivo.name,
                             peso: archivo.size
+
                         };
                         allFiles.push(objetoArchivo); // Agregar el archivo comprimido al arreglo allFiles
 
